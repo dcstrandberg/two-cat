@@ -1,13 +1,80 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+    background-color: #DDDDDD;
+    font: 14px "Century Gothic", Futura, sans-serif;
+    margin: 20px;
+  }
+  ul {
+    list-style-type: none;
+    margin: 10px 0px 10px 0px;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid #555555;
+    background: #AAAAAA;
+    align-items: center;
+  }
+  
+  li {
+    float: center;
+  }
+  .card {
+    border: 2px solid #333333;
+    float: left;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 34px;
+    height: 75px;
+    width: 75px;
+    margin: 5px, 5px, 5px, 5px;
+    padding: 1px, 1px, 1px, 1px;
+    text-align: center;
+    transition: box-shadow 2s;
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
+  }
+
+  .card img {
+    height: 98%;
+    width: 98%;
+  }
+
+  .Wild {
+    background: #DD3300;
+    margin: 5px;
+  }
+
+  .Mirror {
+    background: #CCAA00;
+    margin: 5px;
+  }
+
+  .Cat {
+    background: #229955;
+    margin: 5px;
+  }
+
+  .Ladder {
+    background: #1188FF;
+    margin: 5px;
+  }
+
+/*
+  .cardHolder .isSelected {
+    transition: box-shadow 2s;
+  }
+  */
+  .card:focus {
+    box-shadow: 5px 5px 3px grey;
+  }
+  
+  .kbd-navigation .square:focus {
+    background: #ddd;
+  }
+  
+  .game {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .game-info {
+    margin-left: 20px;
+  }
+  

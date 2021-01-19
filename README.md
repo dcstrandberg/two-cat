@@ -1,3 +1,7 @@
+My first foray into React -- building out Friday the 13th card game
+Also giving me a chance to brush back up on my javascript / CSS... Oofta
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
