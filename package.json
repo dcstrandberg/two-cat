@@ -28,7 +28,7 @@
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "start": "nodemon ./src/backend/app.js; npm ./src/app.js"
+    "start": "node ./src/backend/index.js"
   },
   "eslintConfig": {
     "extends": [

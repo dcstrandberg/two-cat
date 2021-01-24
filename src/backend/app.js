@@ -2,9 +2,9 @@ var express = require('express');
 const cors = require('cors');
 var socket = require('socket.io');
 
-
 var app = express();
 
+app.use(express.static("./build/static/"));
 
 var corsOptions = {
     origin: 'http://example.com',
