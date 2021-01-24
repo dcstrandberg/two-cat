@@ -7,19 +7,28 @@
     "@testing-library/react": "^11.2.3",
     "@testing-library/user-event": "^12.6.2",
     "cors": "^2.8.5",
+    "heroku": "^7.47.11",
+    "nodemon": "^2.0.7",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
     "socket.io": "^3.1.0",
     "socket.io-client": "^3.1.0",
+    "typescript": "^4.1.3",
     "web-vitals": "^0.2.4"
   },
+  "engines": {
+    "node": "14.x"
+  },
+  "homepage": "http://dcstrandberg.github.io/two-cat",
   "scripts": {
-    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "start": "nodemon ./src/backend/app.js; npm ./src/app.js"
   },
   "eslintConfig": {
     "extends": [
