@@ -5,7 +5,7 @@ import './index.css';
 import { BrowserRouter as Router, Route, Redirect, useLocation} from 'react-router-dom';
 import io from "socket.io-client";
 
-const serverPath = 'localhost:5000';
+const serverPath = "/";
 
 
 function Card(props) {
