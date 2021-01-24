@@ -212,7 +212,7 @@ class Game extends React.Component {
     super(props);
     this.state = {
       name: "twocat",
-      activePlayer: 0, 
+      activePlayer: -1, 
       playerView: 0,
       winner: null,
       roundNumber: 0, 
@@ -241,7 +241,6 @@ class Game extends React.Component {
   */
  this.socket = io(serverPath);
  this.socket.on('UPDATE_STATE', (newState) => {
-   console.log("UPDATE STATE ON 237");
    this.setState({ ...newState, 
     playerView: this.state.playerView,
    });
@@ -344,10 +343,11 @@ class Game extends React.Component {
       handList: tempHandList,
       selectedCard: selectedCard,
     };
-    this.socket.emit("CHANGE_STATE", tempState);
+    //Instead of emitting here, I'm passing the tempState to the handleTurnEnd so we don't have the issue of dealing with the race condition
+    //this.socket.emit("CHANGE_STATE", tempState);
 
     //And call the Game class method of ending the turn
-    this.handleTurnEnd(tempHandList, tempDiscardList);
+    this.handleTurnEnd(tempHandList, tempDiscardList, tempState);
     return;
 
   }
@@ -513,7 +513,7 @@ class Game extends React.Component {
   };
 
 //This should check if it's the end of the round, and if so call handleRoundEnd, which will check if it's the end of the game, otherwise increment the activePlayer
-  handleTurnEnd(handList, discardList) {
+  handleTurnEnd(handList, discardList, passedState) {
     let tempHandList = handList.slice();
     let tempDiscardList = discardList.slice();
 
@@ -539,7 +539,7 @@ class Game extends React.Component {
 
     //Update the server
     let tempState = {
-      ...this.state,
+      ...passedState,
       activePlayer: activePlayer,
     };
     this.socket.emit("CHANGE_STATE", tempState);
@@ -618,10 +618,11 @@ class Game extends React.Component {
     }
     
   //Update the round numbers, scores, etc.
-  //Decrement the active player because of how cards work
-  let activePlayer = this.state.activePlayer - 1;
   scoreList[thisRound] = thisRoundList;
   thisRound += 1; 
+  //Set active player to be the round (to pass the deal)
+  let activePlayer = thisRound;
+
   
   /*this.setState({
     activePlayer: activePlayer,
@@ -791,7 +792,7 @@ class Game extends React.Component {
     //Update the server
     let tempState = {
       ...this.state,
-      activePlayer: tempPlayer + 1,
+      activePlayer: (tempPlayer + 1) % playerHands.length,
       handList: playerHands,
       pileList: this.initializePiles(),
       discardList: this.initializeDiscards(),

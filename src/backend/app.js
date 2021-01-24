@@ -81,8 +81,6 @@ io.on('connection', socket => {
         
         serverPlaces[data.name] = {...tempState};
         io.emit('UPDATE_STATE', serverPlaces[data.name])
-        console.log("Name is", data.name);
-        console.log("State is", serverPlaces[data.name]);
     });
 
     socket.on('GET_STATE', data => {
