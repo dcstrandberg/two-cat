@@ -779,7 +779,7 @@ class Game extends React.Component {
     //Update the server
     let tempState = {
       ...this.state,
-      activePlayer: tempPlayer,
+      activePlayer: tempPlayer + 1,
       handList: playerHands,
       pileList: this.initializePiles(),
       discardList: this.initializeDiscards(),
