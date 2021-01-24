@@ -9,11 +9,14 @@ const serverPath = "/";
 
 
 function Card(props) {
-  let suitClass = (props.isSelected ? "isSelected " : "").concat(props.suit)
+  let suitClass = (props.isSelected ? "isSelected " : "").concat(props.isSelectedPlayer ? props.suit : "hiddenCard")
   return (
     <div className="cardHolder">
-      <button className={suitClass + " card"} id={props.id} onClick={props.onClick}>
-        {<img src={process.env.PUBLIC_URL + "/images/" + props.name + ".jpg"}  alt={props.name}/>}
+      <button className={suitClass + " card"} id={props.id} onClick={props.isSelectedPlayer ? props.onClick : null}>
+        {props.isSelectedPlayer ? 
+          <img src={process.env.PUBLIC_URL + "/images/" + props.name + ".jpg"}  alt={props.suit}/> : 
+          <img src={process.env.PUBLIC_URL + "/images/cardBack.jpg"} alt="hidden card"/>
+        }
       </button>
     </div>
     
@@ -37,6 +40,7 @@ class Hand extends React.Component {
         <li key={"Card".concat(this.props.cardList[i].id)}> 
           <Card 
             id={this.props.cardList[i].id}
+            isSelectedPlayer={this.props.isSelectedPlayer}
             name={this.props.cardList[i].name}
             value={this.props.cardList[i].value}
             suit={this.props.cardList[i].suit}
@@ -86,6 +90,7 @@ class Pile extends React.Component {
         <li key={"Card".concat(this.props.cardList[i].id)}> 
           <Card 
             id={this.props.cardList[i].id}
+            isSelectedPlayer={this.props.isSelectedPlayer}
             name={this.props.cardList[i].name}
             value={this.props.cardList[i].value}
             suit={this.props.cardList[i].suit}
@@ -140,6 +145,7 @@ class Discard extends React.Component {
         <li key={"Card".concat(this.props.cardList[i].id)}> 
           <Card 
             id={this.props.cardList[i].id}
+            isSelectedPlayer={this.props.isSelectedPlayer}
             name={this.props.cardList[i].name}
             value={this.props.cardList[i].value}
             suit={this.props.cardList[i].suit}
@@ -207,6 +213,7 @@ class Game extends React.Component {
     this.state = {
       name: "twocat",
       activePlayer: 0, 
+      playerView: 0,
       winner: null,
       roundNumber: 0, 
       roundScores: Array(4).fill(Array(4).fill(0)),
@@ -235,8 +242,10 @@ class Game extends React.Component {
  this.socket = io(serverPath);
  this.socket.on('UPDATE_STATE', (newState) => {
    console.log("UPDATE STATE ON 237");
-   this.setState(newState);
+   this.setState({ ...newState, 
+    playerView: this.state.playerView,
    });
+  });
   
   
   }
@@ -404,6 +413,7 @@ class Game extends React.Component {
           <Hand 
             className={isActivePlayer}
             playerid={i}
+            isSelectedPlayer={(i === this.state.playerView)}
             cardList={this.state.handList[i]}
             onClick={(i, cardIndex) => this.handleHandClick(i, cardIndex)}
           />
@@ -418,6 +428,7 @@ class Game extends React.Component {
         <div className={className}>
           <Pile 
             pileid={i}
+            isSelectedPlayer={true} //This one's gotta be true otherwise we would occasionally accidentally hide the piles
             suit={this.state.pileList[i].suit}
             count={this.state.pileList[i].count}
             cardList={this.state.pileList[i].cardList}
@@ -434,6 +445,7 @@ class Game extends React.Component {
         <div className={className}>
           <Discard 
             discardid={i}
+            isSelectedPlayer={(i === this.state.playerView)}
             count={this.state.discardList[i].count}
             cardList={this.state.discardList[i].cardList}
             //I don't think we need this...
@@ -799,7 +811,16 @@ class Game extends React.Component {
 
     return (
       <div className="board">
+        <span className="playerselect">
+          <button name="player1" className={(this.state.playerView === 0) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 0})}>Player 1</button>
+          <button name="player2" className={(this.state.playerView === 1) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 1})}>Player 2</button>
+          <button name="player3" className={(this.state.playerView === 2) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 2})}>Player 3</button>
+          <button name="player4" className={(this.state.playerView === 3) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 3})}>Player 4</button>
+        </span>
         <h2>Active Player: {this.state.activePlayer + 1}</h2>
+        {
+          (this.state.activePlayer === this.state.playerView) && <h2>Your Turn!</h2>
+        }
         <h3>ScoreList [Round {this.state.roundNumber + 1}]: </h3>
           {this.state.roundScores.map((scoreArray, roundNumber) => (
             roundNumber <= this.state.roundNumber &&

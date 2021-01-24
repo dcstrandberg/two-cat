@@ -68,6 +68,13 @@ body {
     border: 5px solid goldenrod;
   }
 
+  button.selectedPlayer {
+    background-color: #555555;
+  }
+  button.unselectedPlayer {
+    background-color: #AAAAAA;
+  }
+
   .Wild {
     background: #DD3300;
     margin: 5px;
@@ -85,6 +92,11 @@ body {
 
   .Ladder {
     background: #1188FF;
+    margin: 5px;
+  }
+
+  .hiddenCard {
+    background: #007700;
     margin: 5px;
   }
 
