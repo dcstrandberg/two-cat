@@ -4,12 +4,7 @@ var socket = require('socket.io');
 
 var app = express();
 
-app.use(express.static("./build/static/"));
-
-var corsOptions = {
-    origin: 'http://example.com',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }
+app.use(express.static("./build/"));
 
 
 var starterGame = {
@@ -74,8 +69,8 @@ io.on('connection', socket => {
         serverPlaces[name].peopleOnline = serverPlaces[name].peopleOnline - 1;
     });
 
-    socket.on('GET_PLACE', () => {
-        io.emit('RECEIVE_PLACE', serverPlaces);
+    socket.on('GET_PLACE', (name) => {
+        io.emit('UPDATE_STATE', serverPlaces[name]);
     });
 
     //when they click the counter

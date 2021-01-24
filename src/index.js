@@ -240,7 +240,9 @@ class Game extends React.Component {
   
   
   }
-
+  componentDidMount( ) {
+    this.socket.emit('GET_PLACE', this.state.name);
+  }
   componentWillUnmount() {
     this.socket.emit('REMOVE_PLACE', this.state.name);
   }
@@ -767,6 +769,7 @@ class Game extends React.Component {
     let orderedDeck = this.initializeDeck();
     let shuffledDeck = this.shuffleDeck( orderedDeck.slice() );
     let playerHands = this.dealCards(shuffledDeck);
+    let tempPlayer = this.state.activePlayer;
     /*this.setState({
       handList: playerHands,
       pileList: this.initializePiles(),
@@ -776,6 +779,7 @@ class Game extends React.Component {
     //Update the server
     let tempState = {
       ...this.state,
+      activePlayer: tempPlayer,
       handList: playerHands,
       pileList: this.initializePiles(),
       discardList: this.initializeDiscards(),
@@ -786,11 +790,6 @@ class Game extends React.Component {
   
   render() {
     
-    //If this is the start of the game
-    if (this.state.handList === null) {
-      this.resetBoard();
-    }
-
     let winnerNumber = this.state.winner;
     
 
@@ -824,6 +823,7 @@ class Game extends React.Component {
           renderDiscardList={() => this.renderDiscardList()}
 
         />
+        <button name="Reset" onClick={() => this.resetBoard()}>RESET BOARD</button>
 
 
     

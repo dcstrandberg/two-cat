@@ -21,14 +21,13 @@
   "engines": {
     "node": "14.x"
   },
-  "homepage": "http://dcstrandberg.github.io/two-cat",
   "scripts": {
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "start": "node ./src/backend/index.js"
+    "start": "node ./src/backend/app.js"
   },
   "eslintConfig": {
     "extends": [
