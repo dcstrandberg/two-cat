@@ -3,6 +3,22 @@ body {
     font: 14px "Century Gothic", Futura, sans-serif;
     margin: 20px;
   }
+
+  .playerselect button.selectedPlayer {
+    background-color: #555555;
+  }
+
+  .playerselect button.unselectedPlayer {
+    background-color: #AAAAAA;
+  }
+
+  .gameInfo {
+    font: 32px;
+    font-weight: bold;
+    float: left;
+    margin-right: 100px;
+  }
+
   ul {
     list-style-type: none;
     margin: 10px 0px 10px 0px;
@@ -24,8 +40,13 @@ body {
     width: 70%;
     float: right;
   }
-  .discardList{
+  .discardList li{
     width: 100%;
+    float: none;
+  }
+  .discard li{
+    width: auto;
+    float: right;
   }
   .pile {
     float: left;
@@ -33,25 +54,31 @@ body {
     margin: 5px;
     align-items:center;
   }
+  .pile .card {
+    height: 75px;
+    width: 75px;
+  }
+
   .hand {
     width: 100%;
   }
   .pileHolder li {
-    margin-right: -10%;
     float: left;
   }
-  .discard {
-    width: 20%;
+  .discard li {
+    float: left;  
   }
 
-  .card {
+  .cardHolder button {
     border: 2px solid #333333;
     float: left;
     font-size: 24px;
     font-weight: bold;
     line-height: 34px;
-    width: 60px;
-    height: 60px;
+    /*
+    width: 50px;
+    height: 50px;
+    */
     /*padding: 1px, 1px, 1px, 1px;*/
     text-align: center;
     transition: box-shadow 2s;
@@ -59,7 +86,7 @@ body {
   }
 
   .card img {
-    height: 90%;
+    height: 100%;
     width: 100%;
   }
 
@@ -67,11 +94,19 @@ body {
     border: 5px solid goldenrod;
   }
 
-  button.selectedPlayer {
-    background-color: #555555;
+  .discard .cardholder button{
+    height: 50px;
+    width: 50px;
   }
-  button.unselectedPlayer {
-    background-color: #AAAAAA;
+
+  .cardHolder button {
+    height: 75px;
+    width: 75px;
+  }
+
+  .cardHolder button.hiddenCard {
+    height: 50px;
+    width: 50px;
   }
 
   .Wild {
@@ -110,11 +145,7 @@ body {
   .card {
     box-shadow: 2px 2px 1px grey;
   }
-  
-  .kbd-navigation .square:focus {
-    background: #ddd;
-  }
-  
+   
   .game {
     display: flex;
     flex-direction: row;

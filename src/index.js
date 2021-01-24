@@ -174,15 +174,11 @@ class Discard extends React.Component {
     const className = this.props.discardid + " discard";
       return (
           <div className={className} discardid={this.props.discardid}>
-            <div className="discardNameHolder">
-              {"Player " + String(this.props.discardid) + " Discard"}
+            <div className="discardNameHolder discardCountHolder">
+              {"Player " + String(this.props.discardid) + " Discard. Count: " + String(this.props.count)}
+
             </div>
-            <ul>{this.renderDiscard()}</ul>
-            
-            <div className="discardCountHolder">
-              {"Count: " + String(this.props.count)}
-            </div>
-          
+            <ul>{this.renderDiscard()}</ul>          
           </div>
       );
   }
@@ -192,15 +188,16 @@ class Board extends React.Component {
   render() {
     return (
       <div className="gameBoard">
-        <div className="pileList">
-          <ul>{this.props.renderPileList()}</ul>
-        </div>
         <div className="handList">
           <ul>{this.props.renderHandList()}</ul>
+        </div>
+        <div className="pileList">
+          <ul>{this.props.renderPileList()}</ul>
         </div>
         <div className="discardList">
           <ul>{this.props.renderDiscardList()}</ul>
         </div>
+
       </div>
     );
   }
@@ -473,10 +470,15 @@ class Game extends React.Component {
   }
 
   renderHandList() {
-    let i, handList = [];
+    let i, handList = [], playerView = this.state.playerView;
     if (this.state.handList !== null) {
+      //First render the selected player's hand
+      handList.push( this.renderHand(playerView) );
+      
       for (i = 0; i < this.state.handList.length; i++) {
-        handList.push( this.renderHand(i) );
+        if (i !== playerView) {
+          handList.push( this.renderHand(i) );
+        }
       }
     }
     return(
@@ -485,10 +487,15 @@ class Game extends React.Component {
   }
 
   renderDiscardList(){
-    let i, discardList = [];
+    let i, discardList = [], playerView = this.state.playerView;
     if (this.state.discardList !== null) {
+      //First render the selected players' discardList
+      discardList.push( this.renderDiscard(playerView) );
+
       for (i = 0; i < this.state.discardList.length; i++) {
-        discardList.push( this.renderDiscard(i) );
+        if (i !== playerView) {
+          discardList.push( this.renderDiscard(i) );
+        }
       }   
     }
     return(
@@ -639,13 +646,13 @@ class Game extends React.Component {
     roundScores: scoreList,
     winner: winner,
   };
-  this.socket.emit("CHANGE_STATE", tempState);
 
   //If there isn't a winner yet:
   if (winner === null) {
     //reset the board for the next round
     this.resetBoard();
   }
+  this.socket.emit("CHANGE_STATE", tempState);
 
   return;
 }
@@ -818,17 +825,19 @@ class Game extends React.Component {
           <button name="player3" className={(this.state.playerView === 2) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 2})}>Player 3</button>
           <button name="player4" className={(this.state.playerView === 3) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 3})}>Player 4</button>
         </span>
-        <h2>Active Player: {this.state.activePlayer + 1}</h2>
-        {
-          (this.state.activePlayer === this.state.playerView) && <h2>Your Turn!</h2>
-        }
-        <h3>ScoreList [Round {this.state.roundNumber + 1}]: </h3>
-          {this.state.roundScores.map((scoreArray, roundNumber) => (
-            roundNumber <= this.state.roundNumber &&
-            <h3 key={"RoundScores".concat(roundNumber)}>{scoreArray.map((score, scoreIndex) => (
-              <span key={"Score".concat(scoreIndex)}>{score}   </span>
-            ))}</h3>
-          ))}
+        <div classname="gameInfo">
+          <div>Active Player: {this.state.activePlayer + 1}</div>
+          {
+            (this.state.activePlayer === this.state.playerView) && <b color="red">Your Turn!</b>
+          }
+          <div>ScoreList [Round {this.state.roundNumber + 1}]: </div>
+            {this.state.roundScores.map((scoreArray, roundNumber) => (
+              roundNumber <= this.state.roundNumber &&
+              <div key={"RoundScores".concat(roundNumber)}>{scoreArray.map((score, scoreIndex) => (
+                <span key={"Score".concat(scoreIndex)}>{score}   </span>
+              ))}</div>
+            ))}
+        </div>
         <Board 
           //I think all these things should be put into the Board Class
           playerHandList={this.state.handList} 
