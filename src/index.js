@@ -175,7 +175,7 @@ class Discard extends React.Component {
       return (
           <div className={className} discardid={this.props.discardid}>
             <div className="discardNameHolder discardCountHolder">
-              {"Player " + String(this.props.discardid) + " Discard. Count: " + String(this.props.count)}
+              {"Player " + String(this.props.discardid + 1) + " Discard. Count: " + String(this.props.count)}
 
             </div>
             <ul>{this.renderDiscard()}</ul>          
@@ -188,11 +188,11 @@ class Board extends React.Component {
   render() {
     return (
       <div className="gameBoard">
+       <div className="pileList">
+          <ul>{this.props.renderPileList()}</ul>
+        </div>
         <div className="handList">
           <ul>{this.props.renderHandList()}</ul>
-        </div>
-        <div className="pileList">
-          <ul>{this.props.renderPileList()}</ul>
         </div>
         <div className="discardList">
           <ul>{this.props.renderDiscardList()}</ul>
@@ -213,11 +213,11 @@ class Game extends React.Component {
       playerView: 0,
       winner: null,
       roundNumber: 0, 
-      roundScores: Array(4).fill(Array(4).fill(0)),
+      roundScores: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],// TODO same thing here, this will cause issues with memory, so we for now we're declaring it hardcoded Array(4).fill(Array(4).fill(0)),
       suitList : ["Cat", "Mirror", "Ladder"],
       overflowNumber : 14, //This means it can be UPTO 13, and goes away at 14
       numberList : [1, 1, 1, 2, 2, 2, 4, 4, 5, 5, 5, 7, 7, 7],
-      numWilds : 8,
+      numWilds : 0, //8,
       wildValue : 4,
       maxRounds : 4,
       wildPoints : 2,
@@ -472,13 +472,11 @@ class Game extends React.Component {
   renderHandList() {
     let i, handList = [], playerView = this.state.playerView;
     if (this.state.handList !== null) {
-      //First render the selected player's hand
-      handList.push( this.renderHand(playerView) );
       
+      //First render the selected player's hand     
       for (i = 0; i < this.state.handList.length; i++) {
-        if (i !== playerView) {
-          handList.push( this.renderHand(i) );
-        }
+        
+          handList.push( this.renderHand( (playerView + i) % this.state.handList.length) );
       }
     }
     return(
@@ -490,12 +488,8 @@ class Game extends React.Component {
     let i, discardList = [], playerView = this.state.playerView;
     if (this.state.discardList !== null) {
       //First render the selected players' discardList
-      discardList.push( this.renderDiscard(playerView) );
-
       for (i = 0; i < this.state.discardList.length; i++) {
-        if (i !== playerView) {
-          discardList.push( this.renderDiscard(i) );
-        }
+          discardList.push( this.renderDiscard( (playerView + i) % this.state.discardList.length) );
       }   
     }
     return(
@@ -535,25 +529,26 @@ class Game extends React.Component {
 
     if (roundOver === true) {
       this.handleRoundEnd(tempDiscardList)
-    }
+    } else {
     
-    //Regardless, let's increment the active player and return
-    let activePlayer = this.state.activePlayer;
-    activePlayer = (activePlayer + 1) % tempHandList.length;
-    /*this.setState({
-      activePlayer: activePlayer,
-    });*/
+      //Regardless, let's increment the active player and return
+      let activePlayer = this.state.activePlayer;
+      activePlayer = (activePlayer + 1) % tempHandList.length;
+      /*this.setState({
+        activePlayer: activePlayer,
+      });*/
 
-    //Update the server
-    let tempState = {
-      ...passedState,
-      activePlayer: activePlayer,
-    };
-    this.socket.emit("CHANGE_STATE", tempState);
+      //Update the server
+      let tempState = {
+        ...passedState,
+        activePlayer: activePlayer,
+      };
+      this.socket.emit("CHANGE_STATE", tempState);
+    }
     return;
   }
 
-  handleRoundEnd(discardList) {
+  handleRoundEnd( discardList ) {
     //first slice out the pileList
     let thisRound = this.state.roundNumber;
     let scoreList = this.state.roundScores.slice();
@@ -568,11 +563,14 @@ class Game extends React.Component {
     });
     //let tempScores = Array(discardList.length).fill(0);
     //I need to loop through the discardPiles to figure out how scoring works
-    let suitCardList = Array(suitList.length).fill( Array(tempDiscardList.length).fill(0) );
+    //let suitCardList = Array(suitList.length).fill( Array(tempDiscardList.length).fill(0).slice() );
+    //TODO figure out a way to make this programmatically create an array, but without creating one that has references to all the same ones
+    let suitCardList = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     let wildCards = Array(tempDiscardList.length).fill(0);
     let tempCard;
 
-    let i, j;
+    let i, j, tempIdx;
+
     for (i = 0; i < tempDiscardList.length; i++) { 
       //Distribute each card appropriately
       while (tempDiscardList[i].cardList.length > 0) {
@@ -581,12 +579,16 @@ class Game extends React.Component {
         if (tempCard.suit === "Wild") {
           wildCards[i] += this.state.wildPoints;
         } else {
-          suitCardList[ suitList.indexOf( tempCard.suit ) ][i] += 1
+          tempIdx = suitList.indexOf( tempCard.suit );
+
+          suitCardList[tempIdx][i] += 1;
         }
       }
-      
+
       //Check to see if any are longer than the current best: 
       for (j = 0; j < topPlayers.length; j++) {
+
+        
         if ( suitCardList[ j ][i] > topPlayers[j].mostCards ) {
           topPlayers[j].mostCards = suitCardList[ j ][i] ;
           topPlayers[j].player = i;
@@ -597,13 +599,18 @@ class Game extends React.Component {
       }
     }
     
+    for (i = 0; i < suitCardList.length; i++) {
+      for (j = 0; j < suitCardList[i].length; j++) {
+      }
+    }
+
     //Now we know who to subtract points from -- let's compute the scores
     for (i = 0; i < thisRoundList.length; i++) {
       //For each player, add their wild card scores
       thisRoundList[i] += wildCards[i];
 
       //Then loop through each suit score and then add them
-      for (j = 0; j < suitCardList.length; j++) {
+      for (j = 0; j < suitList.length; j++) {
         thisRoundList[i] += suitCardList[j][i];
       }
     }
@@ -638,21 +645,23 @@ class Game extends React.Component {
     winner: winner,
   });*/
 
-  //Update the server
-  let tempState = {
-    ...this.state,
-    activePlayer: activePlayer,
-    roundNumber: thisRound,
-    roundScores: scoreList,
-    winner: winner,
-  };
+   //Update the server
+    let tempState = {
+      ...this.state,
+      roundNumber: thisRound,
+      activePlayer: activePlayer,
+      roundNumber: thisRound,
+      roundScores: scoreList,
+      winner: winner,
+    };
 
   //If there isn't a winner yet:
-  if (winner === null) {
+  if (winner == null) {
     //reset the board for the next round
-    this.resetBoard();
+    this.resetBoard(tempState);
+  } else {
+    this.socket.emit("CHANGE_STATE", tempState);
   }
-  this.socket.emit("CHANGE_STATE", tempState);
 
   return;
 }
@@ -785,11 +794,13 @@ class Game extends React.Component {
 
     return discardList;
   }
-  resetBoard() {
+  resetBoard(tempState) {
     let orderedDeck = this.initializeDeck();
     let shuffledDeck = this.shuffleDeck( orderedDeck.slice() );
     let playerHands = this.dealCards(shuffledDeck);
     let tempPlayer = this.state.activePlayer;
+    let tempPileList = this.initializePiles();
+    let tempDiscardList = this.initializeDiscards();
     /*this.setState({
       handList: playerHands,
       pileList: this.initializePiles(),
@@ -797,12 +808,12 @@ class Game extends React.Component {
     });*/
 
     //Update the server
-    let tempState = {
-      ...this.state,
-      activePlayer: (tempPlayer + 1) % playerHands.length,
+    tempState = {
+      ...tempState,
+      activePlayer: tempState.activePlayer > 0 ? tempState.activePlayer : 0,
       handList: playerHands,
-      pileList: this.initializePiles(),
-      discardList: this.initializeDiscards(),
+      pileList: tempPileList,
+      discardList: tempDiscardList,
     };
     this.socket.emit("CHANGE_STATE", tempState);
     return;
@@ -854,7 +865,7 @@ class Game extends React.Component {
           renderDiscardList={() => this.renderDiscardList()}
 
         />
-        <button name="Reset" onClick={() => this.resetBoard()}>RESET BOARD</button>
+        <button name="Reset" onClick={() => this.resetBoard(this.state)}>RESET BOARD</button>
 
 
     

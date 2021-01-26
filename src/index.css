@@ -27,18 +27,27 @@ body {
     border: 2px solid #555555;
     background: #AAAAAA;
     align-items: center;
+
   }
   
   li {
     float: left;
   }
-  .pileList{
-    float: left;
+  li.pile{
     width: 30%;
+    margin: auto;
+    height: 200px;
+    overflow: hidden;
   }
   .handList{
-    width: 70%;
+    width: 100%;
     float: right;
+  }
+  div.pileHolder li {
+    width: 100%;
+    overflow: hidden;
+    float: left;
+    margin: auto;
   }
   .discardList li{
     width: 100%;
@@ -48,23 +57,22 @@ body {
     width: auto;
     float: right;
   }
-  .pile {
+  li.pile li {
     float: left;
-    width: 80px;
-    margin: 5px;
-    align-items:center;
+    width: auto;
+    margin: auto;
+
   }
   .pile .card {
     height: 75px;
     width: 75px;
+
   }
 
   .hand {
     width: 100%;
   }
-  .pileHolder li {
-    float: left;
-  }
+  
   .discard li {
     float: left;  
   }
@@ -75,6 +83,7 @@ body {
     font-size: 24px;
     font-weight: bold;
     line-height: 34px;
+
     /*
     width: 50px;
     height: 50px;
@@ -88,6 +97,7 @@ body {
   .card img {
     height: 100%;
     width: 100%;
+
   }
 
   .active-player {
@@ -102,6 +112,7 @@ body {
   .cardHolder button {
     height: 75px;
     width: 75px;
+
   }
 
   .cardHolder button.hiddenCard {
@@ -112,26 +123,31 @@ body {
   .Wild {
     background: #DD3300;
     margin: 5px;
+
   }
 
   .Mirror {
     background: #CCAA00;
     margin: 5px;
+
   }
 
   .Cat {
     background: #229955;
     margin: 5px;
+
   }
 
   .Ladder {
     background: #1188FF;
     margin: 5px;
+
   }
 
   .hiddenCard {
     background: #007700;
     margin: 5px;
+
   }
 
   .card:hover {
