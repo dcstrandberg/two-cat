@@ -217,7 +217,7 @@ class Game extends React.Component {
       suitList : ["Cat", "Mirror", "Ladder"],
       overflowNumber : 14, //This means it can be UPTO 13, and goes away at 14
       numberList : [1, 1, 1, 2, 2, 2, 4, 4, 5, 5, 5, 7, 7, 7],
-      numWilds : 0, //8,
+      numWilds : 8,
       wildValue : 4,
       maxRounds : 4,
       wildPoints : 2,
