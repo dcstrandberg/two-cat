@@ -528,11 +528,11 @@ class Game extends React.Component {
     }
 
     if (roundOver === true) {
-      this.handleRoundEnd(tempDiscardList)
+      this.handleRoundEnd(passedState, tempDiscardList)
     } else {
     
       //Regardless, let's increment the active player and return
-      let activePlayer = this.state.activePlayer;
+      let activePlayer = passedState.activePlayer;
       activePlayer = (activePlayer + 1) % tempHandList.length;
       /*this.setState({
         activePlayer: activePlayer,
@@ -548,19 +548,16 @@ class Game extends React.Component {
     return;
   }
 
-  handleRoundEnd( discardList ) {
+  handleRoundEnd( tempState, discardList ) {
     //first slice out the pileList
-    let thisRound = this.state.roundNumber;
-    let scoreList = this.state.roundScores.slice();
+    let thisRound = tempState.roundNumber;
+    let scoreList = tempState.roundScores.slice();
     let thisRoundList = scoreList[thisRound].slice();
     let tempDiscardList = discardList.slice();
 
     //first check if any players have the highest # of a card color
-    let suitList = this.state.suitList.slice();
-    let topPlayers = Array(suitList.length).fill({
-      mostCards: 0, 
-      player: -1,
-    });
+    let suitList = tempState.state.suitList.slice();
+    let topPlayers = [ { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, } ];
     //let tempScores = Array(discardList.length).fill(0);
     //I need to loop through the discardPiles to figure out how scoring works
     //let suitCardList = Array(suitList.length).fill( Array(tempDiscardList.length).fill(0).slice() );
@@ -623,7 +620,7 @@ class Game extends React.Component {
     }
 
 
-    let winner = this.state.winner;
+    let winner = tempState.winner;
 
     //Also need to check if it's the final round, at which point I need to pass end of game
     if (thisRound >= this.state.maxRounds - 1) {
@@ -646,8 +643,8 @@ class Game extends React.Component {
   });*/
 
    //Update the server
-    let tempState = {
-      ...this.state,
+    let temptempState = {
+      ...tempState,
       roundNumber: thisRound,
       activePlayer: activePlayer,
       roundNumber: thisRound,
@@ -658,9 +655,9 @@ class Game extends React.Component {
   //If there isn't a winner yet:
   if (winner == null) {
     //reset the board for the next round
-    this.resetBoard(tempState);
+    this.resetBoard(temptempState);
   } else {
-    this.socket.emit("CHANGE_STATE", tempState);
+    this.socket.emit("CHANGE_STATE", temptempState);
   }
 
   return;
@@ -726,10 +723,10 @@ class Game extends React.Component {
     return tempDeck;
   }
 
-  dealCards( deck ) {
+  dealCards( deck, startingPlayer ) {
     //need to distribute the cards to each empty hand....
     let tempHandList = [[], [], [], []];
-    let currentHand = this.state.roundNumber; 
+    let currentHand = startingPlayer; 
     let maxHand = 4;
     
     while (deck.length > 0) {
@@ -797,8 +794,8 @@ class Game extends React.Component {
   resetBoard(tempState) {
     let orderedDeck = this.initializeDeck();
     let shuffledDeck = this.shuffleDeck( orderedDeck.slice() );
-    let playerHands = this.dealCards(shuffledDeck);
-    let tempPlayer = this.state.activePlayer;
+    let playerHands = this.dealCards(shuffledDeck, tempState.roundNumber);
+    let tempPlayer = tempState.activePlayer;
     let tempPileList = this.initializePiles();
     let tempDiscardList = this.initializeDiscards();
     /*this.setState({
