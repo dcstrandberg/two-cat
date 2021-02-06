@@ -208,7 +208,7 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: "twocat",
+      name: "twocat", //Eventually figure out how to randomize this and have it be a new room in the place
       activePlayer: -1, 
       playerView: 0,
       winner: null,
@@ -228,7 +228,11 @@ class Game extends React.Component {
       selectedCard: {
         handIndex: null,
         cardIndex: null,
+        history: []
       },
+      //I'm actually thinking we only need historylength and not the full history so commenting it out for the time being
+      //history: [],
+      historyLength: 0,
     };
 
     /*
@@ -246,11 +250,55 @@ class Game extends React.Component {
   
   }
   componentDidMount( ) {
+    /*
+    TODO this should be gotten from the props instead of state,
+    and at that point, the state wouldn't even need to exists for Game, 
+    it could all just be passed between functions and gotten from the server
+    */
     this.socket.emit('GET_PLACE', this.state.name);
   }
   componentWillUnmount() {
     this.socket.emit('REMOVE_PLACE', this.state.name);
   }
+
+  sendState = (tempState) => {
+    let newHistory = tempState.historyLength + 1;
+    let serverHistory = false;
+
+    while (!serverHistory) {
+      serverHistory = fetch("/" + tempState.name)
+      .then( response => {
+        console.log("New Client history is: " + newHistory)
+        let tempResponse = response.text().then( (data) => {
+            console.log("Got history of: " + data.toString());
+            return data.toString();
+          }
+        );
+      })
+      .catch( (error) => {
+        //If we can't get the history, then don't write to the server?????
+        //... or maybe check again?
+        console.log(error.text());
+        return false;
+      });
+    }
+    
+    if (serverHistory >= newHistory) {
+      console.log("The client was behind the server somehow");
+      //If the client is behind the server, we should run update server
+      this.socket.emit("UPDATE_STATE", tempState.name)
+      return;
+    } else {
+      //Here we need to modify tempState to update the history, and then write the new state to the server
+      tempState.historyLength = newHistory;
+      //I'm actually thinking we only need historylength and not the full history so commenting it out for the time being
+      //tempState.history.push(tempState)
+      this.socket.emit("CHANGE_STATE", tempState);
+    
+    }
+    return;
+  }
+
   //Bringing these functions up from Board to Game----------
   handlePileClick(pileIndex) {
     //First check to make sure a card is selected before acting on a Pile Click
@@ -394,7 +442,15 @@ class Game extends React.Component {
       handList: tempHandList,
       selectedCard: selectedCard,
     };
-    this.socket.emit("CHANGE_STATE", tempState);
+    
+    //What I really should do is create a CHANGE_STATE function that checks the history to make sure things are good, then returns
+    //I'll write it here, then abstract it up there
+
+    //Now we need to call the changestate function
+    this.sendState(tempState);
+
+    
+
 
     return;
   }
@@ -499,17 +555,21 @@ class Game extends React.Component {
   //End of functions brought up from Board to Game -------------
 
 
-  checkWinner() {
+  checkWinner(tempState) {
     //Assuming the game IS over, let's check the scores and return the winning player
     let finalScores = [0, 0, 0, 0];
-    let i, j;
-    for (i = 0; i < this.state.roundScores.length; i++) {
-      for (j = 0; j < this.state.roundScores[i].length; j++) {
-        finalScores[j] += this.state.roundScores[i][j];
+    let i, j, tempScoreList;
+    let tempRoundScores = tempState.roundScores.slice();
+    for (i = 0; i < tempRoundScores.length; i++) {
+      tempScoreList = tempRoundScores[i].slice();
+
+      for (j = 0; j < tempScoreList.length; j++) {
+        finalScores[j] += tempScoreList[j];
       }
     }
-
-    return finalScores.indexOf( Math.max.apply(null, finalScores) );
+    let min = Math.min.apply(null, finalScores);
+    let winner = finalScores.indexOf( min );
+    return winner;
 
   };
 
@@ -539,11 +599,11 @@ class Game extends React.Component {
       });*/
 
       //Update the server
-      let tempState = {
+      passedState = {
         ...passedState,
         activePlayer: activePlayer,
       };
-      this.socket.emit("CHANGE_STATE", tempState);
+      this.sendState(passedState);
     }
     return;
   }
@@ -556,8 +616,8 @@ class Game extends React.Component {
     let tempDiscardList = discardList.slice();
 
     //first check if any players have the highest # of a card color
-    let suitList = tempState.state.suitList.slice();
-    let topPlayers = [ { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, } ];
+    let suitList = tempState.suitList.slice();
+    let topPlayers = [ { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, }, { mostCards: 0, player: -1, } ];
     //let tempScores = Array(discardList.length).fill(0);
     //I need to loop through the discardPiles to figure out how scoring works
     //let suitCardList = Array(suitList.length).fill( Array(tempDiscardList.length).fill(0).slice() );
@@ -585,7 +645,6 @@ class Game extends React.Component {
       //Check to see if any are longer than the current best: 
       for (j = 0; j < topPlayers.length; j++) {
 
-        
         if ( suitCardList[ j ][i] > topPlayers[j].mostCards ) {
           topPlayers[j].mostCards = suitCardList[ j ][i] ;
           topPlayers[j].player = i;
@@ -620,44 +679,40 @@ class Game extends React.Component {
     }
 
 
-    let winner = tempState.winner;
-
-    //Also need to check if it's the final round, at which point I need to pass end of game
-    if (thisRound >= this.state.maxRounds - 1) {
-      
-      winner = this.checkWinner();
-    }
-    
-  //Update the round numbers, scores, etc.
-  scoreList[thisRound] = thisRoundList;
-  thisRound += 1; 
-  //Set active player to be the round (to pass the deal)
-  let activePlayer = thisRound;
-
-  
-  /*this.setState({
-    activePlayer: activePlayer,
-    roundNumber: thisRound,
-    roundScores: scoreList,
-    winner: winner,
-  });*/
+    //Update the round numbers, scores, etc.
+    scoreList[thisRound] = thisRoundList;
+    thisRound += 1; 
+    //Set active player to be the round (to pass the deal)
+    let activePlayer = thisRound;
 
    //Update the server
-    let temptempState = {
+    tempState = {
       ...tempState,
       roundNumber: thisRound,
       activePlayer: activePlayer,
-      roundNumber: thisRound,
       roundScores: scoreList,
+    };
+
+    let winner = tempState.winner;
+
+    //Also need to check if it's the final round, at which point I need to pass end of game
+    if (thisRound >= this.state.maxRounds) {
+      console.log("We've said there is a winner");
+      winner = this.checkWinner(tempState);
+    }
+    
+   //Update the server
+    tempState = {
+      ...tempState,
       winner: winner,
     };
 
   //If there isn't a winner yet:
-  if (winner == null) {
+  if (winner === null) {
     //reset the board for the next round
-    this.resetBoard(temptempState);
+    this.resetBoard(tempState);
   } else {
-    this.socket.emit("CHANGE_STATE", temptempState);
+    this.sendState(tempState);
   }
 
   return;
@@ -807,12 +862,12 @@ class Game extends React.Component {
     //Update the server
     tempState = {
       ...tempState,
-      activePlayer: tempState.activePlayer > 0 ? tempState.activePlayer : 0,
+      activePlayer: tempPlayer > 0 ? tempPlayer : 0,
       handList: playerHands,
       pileList: tempPileList,
       discardList: tempDiscardList,
     };
-    this.socket.emit("CHANGE_STATE", tempState);
+    this.sendState(tempState);
     return;
   }
   
@@ -833,6 +888,11 @@ class Game extends React.Component {
           <button name="player3" className={(this.state.playerView === 2) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 2})}>Player 3</button>
           <button name="player4" className={(this.state.playerView === 3) ? "selectedPlayer" : "unselectedPlayer"} onClick={() => this.setState({playerView: 3})}>Player 4</button>
         </span>
+        { winnerNumber !== null &&
+
+          <h2>Congratualtions, Player {this.state.winner + 1} </h2>
+
+        }
         <div classname="gameInfo">
           <div>Active Player: {this.state.activePlayer + 1}</div>
           {
@@ -863,14 +923,6 @@ class Game extends React.Component {
 
         />
         <button name="Reset" onClick={() => this.resetBoard(this.state)}>RESET BOARD</button>
-
-
-    
-        { winnerNumber > 0 &&
-
-          <h2>Congratualtions, Player {this.state.winner + 1} </h2>
-
-        }
       </div>
     );
   }
@@ -879,6 +931,11 @@ class Game extends React.Component {
 
 ReactDOM.render(
   <Router onUpdate={() => window.scrollTo(0, 0)}>
+  {
+    //This is where I would add logic to check what routes are there and how to deal with it...
+    //For now I guess we'll just leave it -- I suppose I could pass this down? Can routes live below the top level component?
+
+  }
     <Route path="/" component={ Game } />
   </Router>,
   document.getElementById("root")
